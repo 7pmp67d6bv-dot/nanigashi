@@ -65,13 +65,18 @@ def _build_system_prompt(settings: dict) -> str:
     style_sample = blog.get("writing_style_sample", "").strip()
     author_profile = blog.get("author_profile", "").strip()
 
+    style_notes = blog.get("writing_style_notes", "").strip()
+
     style_section = ""
     if style_sample and "ここに過去記事の文章を貼り付けてください" not in style_sample:
+        notes_block = f"\n### 文体ルール\n{style_notes}" if style_notes else ""
         style_section = f"""
 ## 文体・語り口の参考（過去記事より）
-以下の文体・テンポ・語り口を忠実に再現してください。
-単語の選び方、句読点の打ち方、文の長さ、一人称の使い方を特に参考にすること。
+以下の実際の記事サンプルを読み込み、この文体・テンポ・語り口を忠実に再現してください。
+単語の選び方・句読点の打ち方・文の長さ・断定の強さを特に参考にすること。
+{notes_block}
 
+### 実際の記事サンプル
 ---
 {style_sample}
 ---"""
