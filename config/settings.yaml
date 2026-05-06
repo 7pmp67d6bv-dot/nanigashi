@@ -61,14 +61,14 @@ swell:
 # --- GitHub Projects 設定 ---
 github:
   # GitHubのユーザー名（リポジトリのオーナー）
-  owner: "YOUR_GITHUB_USERNAME"
+  owner: "7pmp67d6bv-dot"
   # リポジトリ名
   repo: "nanigashi"
   # GitHub ProjectのProject Number（ProjectのURLの末尾の数字）
   # 例: https://github.com/users/xxx/projects/1 → 1
-  project_number: 1
+  project_number: 2
   # ProjectのStatusフィールド名（変更した場合はここも変える）
-  status_field_name: "Status"
+  status_field_name: "Workflow"
   # カンバンの列名（Project上の表示名と完全一致させること）
   columns:
     stock: "Stock"
