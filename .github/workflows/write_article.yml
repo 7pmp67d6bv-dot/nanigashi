@@ -1,0 +1,134 @@
+name: 記事自動執筆
+
+# ============================================================
+# トリガー設定
+# GitHub Projects v2 でカードが "Writing" に移動したときに起動する
+# ============================================================
+on:
+  projects_v2_item:
+    types: [edited]
+
+  # 手動実行（テスト用）
+  # GitHub Actions の "Run workflow" ボタンから実行可能
+  workflow_dispatch:
+    inputs:
+      item_node_id:
+        description: "GitHub ProjectアイテムのNode ID（例: PVTI_lADO...）"
+        required: true
+      content_node_id:
+        description: "イシューのNode ID（例: I_kwDO...）"
+        required: true
+      project_node_id:
+        description: "ProjectのNode ID（例: PVT_kwDO...）"
+        required: true
+
+# GitHub Token への書き込み権限を付与
+permissions:
+  contents: write   # SQLite DB のコミット・プッシュに必要
+  issues: write     # イシューへのコメント追加に必要
+
+jobs:
+  write-article:
+    runs-on: ubuntu-latest
+
+    # projects_v2_item イベントの場合：Writing カラムへの移動のみ処理する
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event_name == 'projects_v2_item' &&
+        github.event.action == 'edited' &&
+        github.event.changes.field_value.to.name == 'Writing'
+      )
+
+    steps:
+      # ============================================================
+      # 1. リポジトリのチェックアウト（SQLite DB を含む）
+      # ============================================================
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+        with:
+          # DB をコミット・プッシュするために PAT を使用
+          token: ${{ secrets.GH_PAT }}
+
+      # ============================================================
+      # 2. Python セットアップ
+      # ============================================================
+      - name: Python 3.11 をセットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: 依存パッケージをインストール
+        run: pip install -r requirements.txt
+
+      # ============================================================
+      # 3. イベント情報を環境変数にセット
+      # ============================================================
+      - name: イベント情報を環境変数にセット
+        id: set-env
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # 手動実行時は入力値を使用
+            echo "EVENT_ITEM_NODE_ID=${{ github.event.inputs.item_node_id }}" >> $GITHUB_ENV
+            echo "EVENT_CONTENT_NODE_ID=${{ github.event.inputs.content_node_id }}" >> $GITHUB_ENV
+            echo "EVENT_CONTENT_TYPE=Issue" >> $GITHUB_ENV
+            echo "EVENT_PROJECT_NODE_ID=${{ github.event.inputs.project_node_id }}" >> $GITHUB_ENV
+          else
+            # projects_v2_item イベント時は webhook ペイロードから取得
+            echo "EVENT_ITEM_NODE_ID=${{ github.event.projects_v2_item.node_id }}" >> $GITHUB_ENV
+            echo "EVENT_CONTENT_NODE_ID=${{ github.event.projects_v2_item.content_node_id }}" >> $GITHUB_ENV
+            echo "EVENT_CONTENT_TYPE=${{ github.event.projects_v2_item.content_type }}" >> $GITHUB_ENV
+            echo "EVENT_PROJECT_NODE_ID=${{ github.event.projects_v2_item.project_node_id }}" >> $GITHUB_ENV
+          fi
+
+      # ============================================================
+      # 4. 記事生成メインスクリプトを実行
+      # ============================================================
+      - name: 記事を生成してWordPressに投稿
+        env:
+          CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+          WP_URL: ${{ secrets.WP_URL }}
+          WP_USER: ${{ secrets.WP_USER }}
+          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: python src/main.py
+
+      # ============================================================
+      # 5. SQLite DB の変更をコミット・プッシュ
+      # ============================================================
+      - name: データベースの変更をコミット
+        run: |
+          git config --global user.name "nanigashi-bot"
+          git config --global user.email "bot@nanigashi.local"
+          git add data/nanigashi.db
+          # 変更がある場合のみコミット
+          if git diff --staged --quiet; then
+            echo "DBに変更はありませんでした"
+          else
+            git commit -m "DB更新: 記事生成完了"
+            git push
+          fi
+
+      # ============================================================
+      # 6. エラー時の通知（イシューにコメント）
+      # ============================================================
+      - name: エラー時にイシューへ通知
+        if: failure()
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          python - <<'EOF'
+          import os, sys
+          sys.path.insert(0, 'src')
+          from github_projects import add_issue_comment
+          content_node_id = os.environ.get('EVENT_CONTENT_NODE_ID', '')
+          if content_node_id:
+              body = (
+                  "## ❌ 記事生成エラー\n\n"
+                  "自動執筆処理中にエラーが発生しました。\n"
+                  "GitHub Actions のログを確認してください。\n\n"
+                  f"[ログを確認する](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+              )
+              add_issue_comment(content_node_id, body)
+          EOF

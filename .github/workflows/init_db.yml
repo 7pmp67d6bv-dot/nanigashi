@@ -1,0 +1,51 @@
+name: データベース初期化
+
+# ============================================================
+# 初回セットアップ時や DB スキーマ変更時に手動実行する
+# ============================================================
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  init-db:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: リポジトリをチェックアウト
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
+
+      - name: Python 3.11 をセットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: 依存パッケージをインストール
+        run: pip install -r requirements.txt
+
+      - name: データベースを初期化
+        run: |
+          python -c "
+          import sys
+          sys.path.insert(0, 'src')
+          from database import init_database
+          init_database()
+          print('データベースの初期化が完了しました')
+          "
+
+      - name: データベースをコミット
+        run: |
+          git config --global user.name "nanigashi-bot"
+          git config --global user.email "bot@nanigashi.local"
+          git add data/nanigashi.db
+          if git diff --staged --quiet; then
+            echo "DBに変更はありませんでした（既に初期化済み）"
+          else
+            git commit -m "DB初期化: テーブル作成"
+            git push
+          fi

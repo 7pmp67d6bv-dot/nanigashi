@@ -1,0 +1,89 @@
+# ============================================================
+# nanigashi 自動執筆システム 設定ファイル
+# ============================================================
+# このファイルでブログの設定・記事の品質基準・SWELL吹き出しの
+# テンプレートなどを管理します。
+# APIキーなどの機密情報は .env ファイルに記載してください。
+# ============================================================
+
+# --- ブログ基本情報 ---
+blog:
+  name: "nanigashi"
+  theme: "ガジェット・インテリア（Japandi/和モダン）・バッグ"
+  target_audience: "30〜40代のライフスタイル意識の高い読者"
+  # 記事の文体・トーン
+  tone: "丁寧でわかりやすく、専門的すぎない。読者に寄り添う語り口。"
+  # キーワードが薄い場合に補足するサブテーマ（カンマ区切り）
+  sub_themes:
+    - "ミニマリスト"
+    - "Japandiスタイル"
+    - "コスパ重視"
+    - "大人のシンプル"
+
+# --- 記事品質設定 ---
+article:
+  # 本文の文字数（この範囲に収める）
+  min_chars: 2500
+  max_chars: 3500
+  # SEOタイトルの生成候補数
+  title_candidates: 3
+  # メタディスクリプションの文字数
+  meta_desc_min: 110
+  meta_desc_max: 120
+  # 記事中の吹き出し挿入数
+  balloon_count: 3
+  # 記事中のアフィリエイトリンク数（楽天+Amazon合計）
+  affiliate_link_count: 3
+
+# --- Claude API 設定 ---
+claude:
+  # 使用モデル（変更する場合はここを書き換える）
+  model: "claude-opus-4-5"
+  max_tokens: 8000
+  # システムプロンプトに追加するカスタム指示（空欄でもOK）
+  custom_instructions: ""
+
+# --- SWELL吹き出し設定 ---
+swell:
+  # 吹き出しキャラクターの名前
+  character_name: "なにがし"
+  # キャラクター画像URL（WordPress メディアライブラリのURL を入れる。空欄でもOK）
+  character_image_url: ""
+  # 吹き出しの向き: "l"=左, "r"=右
+  balloon_direction: "l"
+  # 吹き出しブロックのHTMLテンプレート
+  # {direction}, {image_url}, {name}, {text} が自動で置換されます
+  balloon_template: |
+    <!-- wp:swell/balloon {"direction":"{direction}","icon":{"id":"","url":"{image_url}","alt":""},"name":"{name}"} -->
+    <div class="wp-block-swell-balloon is-direction-{direction}"><div class="balloon-body"><figure class="balloon-icon"><img src="{image_url}" alt="{name}" class="swell-balloon-icon"/><figcaption class="balloon-icon-name">{name}</figcaption></figure><div class="balloon-content"><p>{text}</p></div></div></div>
+    <!-- /wp:swell/balloon -->
+
+# --- GitHub Projects 設定 ---
+github:
+  # GitHubのユーザー名（リポジトリのオーナー）
+  owner: "YOUR_GITHUB_USERNAME"
+  # リポジトリ名
+  repo: "nanigashi"
+  # GitHub ProjectのProject Number（ProjectのURLの末尾の数字）
+  # 例: https://github.com/users/xxx/projects/1 → 1
+  project_number: 1
+  # ProjectのStatusフィールド名（変更した場合はここも変える）
+  status_field_name: "Status"
+  # カンバンの列名（Project上の表示名と完全一致させること）
+  columns:
+    stock: "Stock"
+    writing: "Writing"
+    ready: "Ready"
+    done: "Done"
+
+# --- WordPress 設定 ---
+wordpress:
+  # 投稿ステータス（draft=下書き / publish=公開）
+  post_status: "draft"
+  # 投稿タイプ（通常は "post"）
+  post_type: "post"
+  # SEOプラグインのメタディスクリプション用フィールド名
+  # Yoast SEO の場合: "_yoast_wpseo_metadesc"
+  # SEO SIMPLE PACK の場合: "_seosp_description"
+  # All in One SEO の場合: "_aioseop_description"
+  seo_meta_field: "_yoast_wpseo_metadesc"
