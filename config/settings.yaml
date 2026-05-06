@@ -66,9 +66,9 @@ github:
   repo: "nanigashi"
   # GitHub ProjectのProject Number（ProjectのURLの末尾の数字）
   # 例: https://github.com/users/xxx/projects/1 → 1
-  project_number: 2
+  project_number: 1
   # ProjectのStatusフィールド名（変更した場合はここも変える）
-  status_field_name: "Workflow"
+  status_field_name: "Status"
   # カンバンの列名（Project上の表示名と完全一致させること）
   columns:
     stock: "Stock"
