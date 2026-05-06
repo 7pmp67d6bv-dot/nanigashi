@@ -1,0 +1,86 @@
+name: 記事執筆リクエスト
+description: nanigashiブログの記事を執筆する（キーワードをタイトルに入力）
+title: "[キーワード] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 使い方
+        **タイトル**にキーワードを入力してください（例: `Japandiスタイル 照明 おすすめ`）
+        入力した一次情報をもとにClaudeが記事を執筆します。できるだけ具体的に書くと記事の質が上がります。
+
+  - type: textarea
+    id: experience
+    attributes:
+      label: 実体験・一次情報
+      description: 実際に使った感想、体験したこと、気づいたこと。ここが記事の核になります。
+      placeholder: |
+        例：
+        ・実際に3ヶ月使ってみて、〇〇という点が想像以上によかった
+        ・〇〇と比べると△△が明らかに違う
+        ・最初は▲▲が心配だったけど、使ってみたら全然問題なかった
+    validations:
+      required: true
+
+  - type: textarea
+    id: products
+    attributes:
+      label: 紹介する商品・サービス
+      description: 商品名・型番・購入場所・価格帯など。アフィリエイトリンクのプレースホルダーに使われます。
+      placeholder: |
+        例：
+        ・IKEA SYMFONISK ウォールシェルフスピーカー（3万円台）
+        ・楽天で購入、Amazonにも在庫あり
+    validations:
+      required: false
+
+  - type: textarea
+    id: good_points
+    attributes:
+      label: 推しポイント（実際に良かったこと）
+      description: 使ってみてよかったと感じた点。読者への説得力につながります。
+      placeholder: |
+        例：
+        ・見た目がシンプルでインテリアに馴染む
+        ・操作が直感的で説明書不要
+        ・思ったより音質が良くて驚いた
+    validations:
+      required: false
+
+  - type: textarea
+    id: caveats
+    attributes:
+      label: 気になった点・正直な感想
+      description: 良いことだけでなく、気になった点も書くと信頼性が上がります。
+      placeholder: |
+        例：
+        ・価格はそれなりに高い
+        ・設置場所を選ぶ（壁付けなので賃貸では注意）
+        ・アプリの操作が若干もたつく
+    validations:
+      required: false
+
+  - type: textarea
+    id: target_reader
+    attributes:
+      label: 想定読者・解決したい悩み
+      description: どんな人に読んでほしいか、どんな悩みを解決するか。
+      placeholder: |
+        例：
+        ・インテリアにこだわりたいけど生活感が出がちで悩んでいる人
+        ・スピーカーを買いたいけどごちゃごちゃするのが嫌な人
+    validations:
+      required: false
+
+  - type: textarea
+    id: style_notes
+    attributes:
+      label: 文体・トーンの補足（任意）
+      description: いつもと違うトーンにしたい場合や、特定の表現を使いたい場合に記入。空欄でもOK（settings.yamlのデフォルト設定が使われます）。
+      placeholder: |
+        例：
+        ・今回はややカジュアルな語り口で
+        ・「〜してみた」系の体験談スタイルで
+    validations:
+      required: false
